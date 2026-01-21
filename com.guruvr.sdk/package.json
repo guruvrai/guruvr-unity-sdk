@@ -4,5 +4,8 @@
   "displayName": "GuruVR SDK",
   "description": "Unity SDK for GuruVR FastAPI services.",
   "unity": "6000.0",
-  "author": { "name": "GuruVR" }
+  "author": {
+    "name": "GuruVR",
+    "url": "https://guruvr.ai"
+  }
 }
