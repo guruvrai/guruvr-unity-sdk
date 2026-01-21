@@ -1,0 +1,6 @@
+{
+  "name": "GuruVR.SDK.Editor",
+  "references": ["GuruVR.SDK.Runtime"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

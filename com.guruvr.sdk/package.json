@@ -1,0 +1,8 @@
+{
+  "name": "com.guruvr.sdk",
+  "version": "0.1.0",
+  "displayName": "GuruVR SDK",
+  "description": "Unity SDK for GuruVR FastAPI services.",
+  "unity": "2021.3",
+  "author": { "name": "GuruVR" }
+}
