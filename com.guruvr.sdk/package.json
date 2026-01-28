@@ -1,9 +1,9 @@
 {
   "name": "com.guruvr.sdk",
-  "version": "0.1.1",
-  "displayName": "GuruVR SDK",
-  "description": "Unity SDK for GuruVR FastAPI services.",
+  "displayName": "GuruVR Unity SDK",
+  "version": "1.0.0",
   "unity": "6000.0",
+  "description": "GuruVR Unity SDK for authentication, progress tracking, payments, quizzes, and certificates.",
   "author": {
     "name": "GuruVR",
     "url": "https://guruvr.ai"
