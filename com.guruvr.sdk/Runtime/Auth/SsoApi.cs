@@ -1,24 +1,61 @@
 using System;
+using System.Collections;
+using UnityEngine;
 
 namespace GuruVR.SDK
 {
-    public static class SsoApi
+    public partial class SsoApi
     {
-        // Swagger ref:
-        // https://cbackenddev.guruvrmetaversity.com/docs#/Authentication/sso_login_auth_sso__provider__login_get
-        // GET /auth/sso/{provider}/login?redirect_uri=...
-
-        public static string BuildSsoLoginUrl(ApiConfig cfg, string provider, string redirectUri)
+        /// <summary>
+        /// POST /auth/sso/{provider}/exchange
+        /// Body: { code, redirect_uri, state }
+        /// Returns: LoginResponse (access_token, refresh_token, expires_in...)
+        /// </summary>
+        public IEnumerator ExchangeCodeForSession(
+            string provider,
+            string redirectUri,
+            string code,
+            string state,
+            Action<AuthSession> onOk,
+            Action<string> onFail)
         {
-            var baseUrl = (cfg?.baseUrl ?? "").TrimEnd('/');
-            if (string.IsNullOrEmpty(baseUrl)) throw new ArgumentException("ApiConfig.baseUrl is empty");
-            if (string.IsNullOrEmpty(provider)) throw new ArgumentException("provider is empty");
-            if (string.IsNullOrEmpty(redirectUri)) throw new ArgumentException("redirectUri is empty");
+            if (string.IsNullOrEmpty(provider)) { onFail("provider is empty"); yield break; }
+            if (string.IsNullOrEmpty(redirectUri)) { onFail("redirectUri is empty"); yield break; }
+            if (string.IsNullOrEmpty(code)) { onFail("code is empty"); yield break; }
 
             var p = Uri.EscapeDataString(provider);
-            var r = Uri.EscapeDataString(redirectUri);
+            var url = _cfg.baseUrl.TrimEnd('/') + $"/auth/sso/{p}/exchange";
 
-            return $"{baseUrl}/auth/sso/{p}/login?redirect_uri={r}";
+            var body = JsonUtility.ToJson(new SsoExchangeRequest
+            {
+                code = code,
+                redirect_uri = redirectUri,
+                state = state
+            });
+
+            LoginResponse parsed = default;
+
+            yield return UnityHttp.SendJson(
+                method: "POST",
+                url: url,
+                jsonBody: body,
+                bearerToken: null,
+                timeoutSeconds: _cfg.timeoutSeconds,
+                onOk: (http, text) =>
+                {
+                    try { parsed = JsonUtility.FromJson<LoginResponse>(text); }
+                    catch (Exception e) { onFail("SSO exchange parse error: " + e.Message + "\nRaw: " + text); }
+                },
+                onFail: (http, text) => onFail($"SSO exchange failed HTTP {http}: {text}")
+            );
+
+            if (parsed == null || string.IsNullOrEmpty(parsed.access_token))
+            {
+                onFail("SSO exchange success but access_token missing");
+                yield break;
+            }
+
+            onOk(AuthSession.FromLogin(parsed));
         }
     }
 }

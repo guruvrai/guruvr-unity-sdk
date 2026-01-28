@@ -1,9 +1,8 @@
 using System;
 using System.Collections;
 using System.Text;
-using UnityEngine;              // ✅ ADD THIS
+using UnityEngine;
 using UnityEngine.Networking;
-
 
 namespace GuruVR.SDK
 {
@@ -38,6 +37,9 @@ namespace GuruVR.SDK
 
             var text = req.downloadHandler?.text ?? "";
 
+            // ✅ DEBUG: print response JSON (and errors) to console
+            Debug.Log($"[GuruVR.SDK] HTTP {method} {url}\nStatus: {req.responseCode}\nBody:\n{text}");
+
             if (req.result == UnityWebRequest.Result.Success && req.responseCode >= 200 && req.responseCode < 300)
                 onOk(req.responseCode, text);
             else
@@ -59,6 +61,9 @@ namespace GuruVR.SDK
             yield return req.SendWebRequest();
 
             var text = req.downloadHandler?.text ?? "";
+
+            // ✅ DEBUG: print response JSON (and errors) to console
+            Debug.Log($"[GuruVR.SDK] HTTP POST (form) {url}\nStatus: {req.responseCode}\nBody:\n{text}");
 
             if (req.result == UnityWebRequest.Result.Success && req.responseCode >= 200 && req.responseCode < 300)
                 onOk(req.responseCode, text);
