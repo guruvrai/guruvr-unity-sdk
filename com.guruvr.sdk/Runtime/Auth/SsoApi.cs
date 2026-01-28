@@ -4,58 +4,50 @@ using UnityEngine;
 
 namespace GuruVR.SDK
 {
-    public partial class SsoApi
+    public class SsoApi
     {
-        /// <summary>
-        /// POST /auth/sso/{provider}/exchange
-        /// Body: { code, redirect_uri, state }
-        /// Returns: LoginResponse (access_token, refresh_token, expires_in...)
-        /// </summary>
-        public IEnumerator ExchangeCodeForSession(
-            string provider,
-            string redirectUri,
-            string code,
-            string state,
-            Action<AuthSession> onOk,
+        private readonly ApiConfig _cfg;
+
+        public SsoApi(ApiConfig cfg) => _cfg = cfg;
+
+        private string Url(string path) => _cfg.baseUrl.TrimEnd('/') + "/" + path.TrimStart('/');
+
+        // Calls: GET /auth/sso/{provider}/login?redirect_uri=...
+        public IEnumerator GetAuthUrl(string provider, string redirectUri,
+            Action<string> onOk,
             Action<string> onFail)
         {
             if (string.IsNullOrEmpty(provider)) { onFail("provider is empty"); yield break; }
             if (string.IsNullOrEmpty(redirectUri)) { onFail("redirectUri is empty"); yield break; }
-            if (string.IsNullOrEmpty(code)) { onFail("code is empty"); yield break; }
 
             var p = Uri.EscapeDataString(provider);
-            var url = _cfg.baseUrl.TrimEnd('/') + $"/auth/sso/{p}/exchange";
+            var r = Uri.EscapeDataString(redirectUri);
 
-            var body = JsonUtility.ToJson(new SsoExchangeRequest
-            {
-                code = code,
-                redirect_uri = redirectUri,
-                state = state
-            });
+            var url = Url($"/auth/sso/{p}/login?redirect_uri={r}");
 
-            LoginResponse parsed = default;
+            SsoLoginInitResponse parsed = null;
 
             yield return UnityHttp.SendJson(
-                method: "POST",
-                url: url,
-                jsonBody: body,
+                "GET",
+                url,
+                jsonBody: null,
                 bearerToken: null,
                 timeoutSeconds: _cfg.timeoutSeconds,
-                onOk: (http, text) =>
+                onOk: (code, text) =>
                 {
-                    try { parsed = JsonUtility.FromJson<LoginResponse>(text); }
-                    catch (Exception e) { onFail("SSO exchange parse error: " + e.Message + "\nRaw: " + text); }
+                    try { parsed = JsonUtility.FromJson<SsoLoginInitResponse>(text); }
+                    catch (Exception e) { onFail("SSO parse error: " + e.Message + "\nRaw: " + text); }
                 },
-                onFail: (http, text) => onFail($"SSO exchange failed HTTP {http}: {text}")
+                onFail: (code, text) => onFail($"SSO init failed HTTP {code}: {text}")
             );
 
-            if (parsed == null || string.IsNullOrEmpty(parsed.access_token))
+            if (parsed == null || string.IsNullOrEmpty(parsed.auth_url))
             {
-                onFail("SSO exchange success but access_token missing");
+                onFail("SSO init success but auth_url missing");
                 yield break;
             }
 
-            onOk(AuthSession.FromLogin(parsed));
+            onOk(parsed.auth_url);
         }
     }
 }

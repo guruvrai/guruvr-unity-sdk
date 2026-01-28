@@ -3,10 +3,10 @@ using UnityEngine;
 namespace GuruVR.SDK
 {
     [CreateAssetMenu(menuName = "GuruVR/SDK/ApiConfig")]
-    public class ApiConfig : ScriptableObject
+    public static class ApiConfig : ScriptableObject
     {
         [Header("Base URL")]
-        public string baseUrl = "https://backend.test.ai";
+        public string baseUrl = "https://cbackend.guruvr.ai/";
 
         [Header("Timeouts")]
         public int timeoutSeconds = 30;

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GuruVR.SDK
 {
     public class AuthApi:MonoBehaviour
-    {
+    {_cfg
         private readonly ApiConfig _cfg;
 
         public AuthApi(ApiConfig cfg) => _cfg = cfg;
