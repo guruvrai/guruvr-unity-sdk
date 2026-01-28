@@ -1,7 +1,7 @@
 using UnityEngine;
 using GuruVR.SDK;
 
-public class GuruVRSsoController : MonoBehaviour
+public class GuruVRSsoController
 {
     public ApiConfig config;
 
