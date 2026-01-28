@@ -1,34 +1,44 @@
 using UnityEngine;
-using GuruVR.SDK;
 
-public class GuruVRSsoController
+namespace GuruVR.SDK.Auth
 {
-    public ApiConfig config;
-
-    [Header("SSO")]
-    public string provider = "google";
-
-    // Your current swagger example uses web callback:
-    public string redirectUri = "https://creator.guruvr.ai/auth/google/callback";
-
-    private SsoApi _sso;
-
-    private void Awake()
+    public class GuruVRSsoController : MonoBehaviour
     {
-        _sso = new SsoApi(config);
-    }
+        public ApiConfig config;
 
-    public void StartSso()
-    {
-        StartCoroutine(_sso.GetAuthUrl(
-            provider,
-            redirectUri,
-            authUrl =>
+        [Header("SSO")]
+        public string provider = "google";
+        public string redirectUri = "https://creator.guruvr.ai/auth/google/callback";
+
+        private SsoApi _sso;
+
+        private void Awake()
+        {
+            if (config == null)
             {
-                Debug.Log("Opening browser SSO URL...");
-                Application.OpenURL(authUrl);
-            },
-            err => Debug.LogError("SSO init failed: " + err)
-        ));
+                Debug.LogError("GuruVRSsoController: ApiConfig not assigned");
+                return;
+            }
+
+            _sso = new SsoApi(config);
+        }
+
+        public void StartSso()
+        {
+            if (_sso == null)
+            {
+                Debug.LogError("SSO not initialized");
+                return;
+            }
+
+            StartCoroutine(
+                _sso.GetAuthUrl(
+                    provider,
+                    redirectUri,
+                    Application.OpenURL,
+                    err => Debug.LogError("SSO init failed: " + err)
+                )
+            );
+        }
     }
 }
